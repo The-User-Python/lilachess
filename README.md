@@ -75,9 +75,7 @@ details.
 
 ## Credits
 
-See [lichess.org/thanks](https://lichess.org/thanks) and the contributors here:
 
-[![GitHub contributors](https://contrib.rocks/image?repo=ornicar/lila)](https://github.com/ornicar/lila/graphs/contributors)
 
 ## Competence development program
 
