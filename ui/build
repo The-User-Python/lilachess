@@ -1,0 +1,82 @@
+#!/bin/bash -ea
+
+target=${1-dev}
+mode=${2-build} # build | upgrade | css | js
+echo "building ui modules with target=$target and mode=$mode"
+
+nodever="$(node --version)"
+echo "node: $nodever"
+echo "yarn: $(yarn --version)"
+
+[[ "$nodever" =~ ^(v12\.[2-9][0-9]\.[0-9]+)|(v14\.1[3-9]\.[0-9]+)|(v1[5-7]\.[0-9]+\.[0-9]+)$ ]] || { echo "Node version >=12.20 or >=14.13 and <=17 required. Found: $nodever"; exit 1; }
+
+cd "$(git rev-parse --show-toplevel)"
+
+mkdir -p public/compiled
+
+apps1="common"
+apps2="chess palantir"
+apps3="ceval game tree chat nvui puz"
+apps4="site swiss msg cli challenge notify learn insight editor puzzle round analyse lobby tournament tournamentSchedule tournamentCalendar simul dasher speech serviceWorker dgt storm racer"
+site_plugins="tvEmbed puzzleEmbed analyseEmbed user modUser inquiry modSearch clas coordinate captcha expandText team forum account coachShow coachForm challengePage checkout plan login passwordComplexity tourForm teamBattleForm gameSearch userComplete infiniteScroll flatpickr teamAdmin appeal modGames publicChats contact userGamesDownload modActivity tvGames ublog ublogForm"
+round_plugins="nvui keyboardMove"
+analyse_plugins="nvui studyTopicForm"
+puzzle_plugins="nvui dashboard"
+
+if [ $mode == "upgrade" ]; then
+  yarn upgrade --non-interactive
+else
+  yarn install --non-interactive
+fi
+
+build() {
+  echo
+  echo "### ui/$@ ###"
+  set -ev
+  if [[ $1 == "css" ]]; then
+    cd ui
+    yarn run gulp "css-$target"
+  else
+    cd ui/$1
+    yarn run $target
+  fi
+}
+
+build_plugin() {
+  echo
+  echo "### ui/$1 plugin $2 ###"
+  set -ev
+  cd ui/$1
+  yarn run plugin-$target $2
+}
+
+if [ $mode != "upgrade" ] && [ $mode != "js" ]; then
+  apps4="css $apps4"
+fi
+
+if [ $mode == "css" ]; then
+  (build css)
+else
+  if type -p parallel; then # parallel execution!
+    if [ -z "$P_OPTS" -a ! -e ~/.parallel/config ]; then
+      P_OPTS="-j+4 --halt 2"
+      [ -n "$GITHUB_WORKFLOW" ] || P_OPTS+=" --bar"
+    fi
+    set -x
+    parallel --gnu $P_OPTS build ::: $apps1
+    parallel --gnu $P_OPTS build ::: $apps2
+    parallel --gnu $P_OPTS build ::: $apps3
+    parallel --gnu $P_OPTS build ::: $apps4
+    parallel --gnu $P_OPTS build_plugin site ::: $site_plugins
+    parallel --gnu $P_OPTS build_plugin round ::: $round_plugins
+    parallel --gnu $P_OPTS build_plugin analyse ::: $analyse_plugins
+    parallel --gnu $P_OPTS build_plugin puzzle ::: $puzzle_plugins
+  else # sequential execution
+    echo "For faster builds, install GNU parallel."
+    for app in $apps1 $apps2 $apps3 $apps4; do (build $app); done
+    for plugin in $site_plugins; do (build_plugin site $plugin); done
+    for plugin in $round_plugins; do (build_plugin round $plugin); done
+    for plugin in $analyse_plugins; do (build_plugin analyse $plugin); done
+    for plugin in $puzzle_plugins; do (build_plugin puzzle $plugin); done
+  fi
+fi
