@@ -1,6 +1,6 @@
-# [lichess.org](https://lichess.org)
+# [lichess.dev](https://chess-academy.net/)
 
-[![Build server](https://github.com/ornicar/lila/workflows/Build%20server/badge.svg)](https://github.com/ornicar/lila/actions?query=workflow%3A%22Build+server%22)
+[![Build server](https://github.com/DakshCodess/lilachess/workflows/Build%20server/badge.svg)](https://github.com/DakshCodess/lilachess/actions?query=workflow%3A%22Build+server%22)
 [![Build assets](https://github.com/ornicar/lila/workflows/Build%20assets/badge.svg)](https://github.com/ornicar/lila/actions?query=workflow%3A%22Build+assets%22)
 [![Crowdin](https://d322cqt584bo4o.cloudfront.net/lichess/localized.svg)](https://crowdin.com/project/lichess)
 [![Twitter](https://img.shields.io/badge/Twitter-%40lichess-blue.svg)](https://twitter.com/lichess)
